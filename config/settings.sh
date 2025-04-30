@@ -13,6 +13,8 @@ NOT_ROUTED_TO_GATEWAY_CIDRS=""
 
 # Vxlan ID to use
 VXLAN_ID="42"
+# Vxlan Port to use, change it to 4789 (preferably) when using Cillium
+VXLAN_PORT="0"
 # VXLAN need an /24 IP range not conflicting with K8S and local IP ranges
 VXLAN_IP_NETWORK="172.16.0"
 # Keep a range of IPs for static assignment in nat.conf
@@ -30,6 +32,8 @@ VPN_LOCAL_CIDRS="10.0.0.0/8 192.168.0.0/16"
 # DNS queries to these domains will be resolved by K8S DNS instead of
 # the default (typcally the VPN client changes it)
 DNS_LOCAL_CIDRS="local"
+# Dns to use for local resolution, if unset, will use default resolv.conf
+DNS_LOCAL_SERVER=
 
 # dnsmasq monitors directories. /etc/resolv.conf in a container is in another
 # file system so it does not work. To circumvent this a copy is made using
