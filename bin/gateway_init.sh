@@ -3,7 +3,7 @@
 set -ex
 
 # We need to hardcode the config dir variable
-config="/pod-gw-config"
+config="/config"
 
 # Load main settings
 cat /default_config/settings.sh

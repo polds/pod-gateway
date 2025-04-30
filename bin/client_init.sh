@@ -3,7 +3,7 @@ set -e
 
 # Load settings
 . /default_config/settings.sh
-. /pod-gw-config/settings.sh
+. /config/settings.sh
 
 # Setup variables
 K8S_DNS_IP="$(cut -d ' ' -f 1 <<< "$K8S_DNS_IPS")"

@@ -3,7 +3,7 @@ set -e
 
 # Load settings
 . /default_config/settings.sh
-. /pod-gw-config/settings.sh
+. /config/settings.sh
 
 VXLAN_GATEWAY_IP="${VXLAN_IP_NETWORK}.1"
 DHCP_PID_FILE="/var/run/udhcpc.vxlan0.pid"
