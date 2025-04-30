@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   push:
     tags:
-    - "v*.*.*"
+      - "v*.*.*"
     branches:
-    - main
+      - main
   pull_request:
     types:
-    - opened
-    - reopened
+      - opened
+      - reopened
 
 env:
   REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
@@ -23,90 +23,90 @@ jobs:
       image_digest: ${{ steps.image_info.outputs.digest }}
       image_full_name: ${{ steps.image_info.outputs.full_image }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Prepare
-      id: prep
-      run: |
-        VERSION=dev
-        if [[ $GITHUB_REF == refs/tags/v* ]]; then
-          VERSION=${GITHUB_REF#refs/tags/}
-        fi
-        # v1.0.0
-        TAGS="${REGISTRY_IMAGE}:${VERSION}"
-        # v1.0.0,v1
-        TAGS="${TAGS},${REGISTRY_IMAGE}:${VERSION%%.*}"
-        if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-          # :v1.0.0,:v1,:latest
-          TAGS="${TAGS},${REGISTRY_IMAGE}:latest"
-        fi
-        echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+      - name: Prepare
+        id: prep
+        run: |
+          VERSION=dev
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          # v1.0.0
+          TAGS="${REGISTRY_IMAGE}:${VERSION}"
+          # v1.0.0,v1
+          TAGS="${TAGS},${REGISTRY_IMAGE}:${VERSION%%.*}"
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            # :v1.0.0,:v1,:latest
+            TAGS="${TAGS},${REGISTRY_IMAGE}:latest"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
 
-        if [ "${{github.event_name}}" == "pull_request" ]; then
-          echo "push=false" >> $GITHUB_OUTPUT
-          echo "cache_from=type=registry,ref=${REGISTRY_IMAGE}:buildcache" >> $GITHUB_OUTPUT
-          echo "cache_to=" >> $GITHUB_OUTPUT
-        else
-          echo "push=true" >> $GITHUB_OUTPUT
-          echo "cache_from=type=registry,ref=${REGISTRY_IMAGE}:buildcache" >> $GITHUB_OUTPUT
-          echo "cache_to=type=registry,ref=${REGISTRY_IMAGE}:buildcache,mode=max" >> $GITHUB_OUTPUT
-        fi
-        echo "github_server_url=${GITHUB_SERVER_URL}" >> $GITHUB_OUTPUT
+          if [ "${{github.event_name}}" == "pull_request" ]; then
+            echo "push=false" >> $GITHUB_OUTPUT
+            echo "cache_from=type=registry,ref=${REGISTRY_IMAGE}:buildcache" >> $GITHUB_OUTPUT
+            echo "cache_to=" >> $GITHUB_OUTPUT
+          else
+            echo "push=true" >> $GITHUB_OUTPUT
+            echo "cache_from=type=registry,ref=${REGISTRY_IMAGE}:buildcache" >> $GITHUB_OUTPUT
+            echo "cache_to=type=registry,ref=${REGISTRY_IMAGE}:buildcache,mode=max" >> $GITHUB_OUTPUT
+          fi
+          echo "github_server_url=${GITHUB_SERVER_URL}" >> $GITHUB_OUTPUT
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
 
-    - name: Set up Docker Buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        install: true
-        version: latest
-        driver-opts: image=moby/buildkit:master
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          version: latest
+          driver-opts: image=moby/buildkit:master
 
-    - name: Login to GitHub Container Registry
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ secrets.GHCR_USERNAME }}
-        password: ${{ secrets.GHCR_TOKEN }}
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and Push
-      id: docker_build
-      uses: docker/build-push-action@v6
-      with:
-        builder: ${{ steps.buildx.outputs.name }}
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64,linux/arm64
-        push: ${{ steps.prep.outputs.push }}
-        tags: ${{ steps.prep.outputs.tags }}
-        build-args: |
-          IMAGE_SOURCE=${{ steps.prep.outputs.github_server_url }}/${{ github.repository }}
-        cache-from: ${{ steps.prep.outputs.cache_from }}
-        cache-to: ${{ steps.prep.outputs.cache_to }}
+      - name: Build and Push
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ steps.prep.outputs.push }}
+          tags: ${{ steps.prep.outputs.tags }}
+          build-args: |
+            IMAGE_SOURCE=${{ steps.prep.outputs.github_server_url }}/${{ github.repository }}
+          cache-from: ${{ steps.prep.outputs.cache_from }}
+          cache-to: ${{ steps.prep.outputs.cache_to }}
 
-    - name: Image digest
-      id: image_info
-      run: |
-        echo "Image digest: ${{ steps.docker_build.outputs.digest }}"
-        echo "Full image reference: ${REGISTRY_IMAGE}@${{ steps.docker_build.outputs.digest }}"
-        echo "digest=${{ steps.docker_build.outputs.digest }}" >> $GITHUB_OUTPUT
-        echo "full_image=${REGISTRY_IMAGE}@${{ steps.docker_build.outputs.digest }}" >> $GITHUB_OUTPUT
+      - name: Image digest
+        id: image_info
+        run: |
+          echo "Image digest: ${{ steps.docker_build.outputs.digest }}"
+          echo "Full image reference: ${REGISTRY_IMAGE}@${{ steps.docker_build.outputs.digest }}"
+          echo "digest=${{ steps.docker_build.outputs.digest }}" >> $GITHUB_OUTPUT
+          echo "full_image=${REGISTRY_IMAGE}@${{ steps.docker_build.outputs.digest }}" >> $GITHUB_OUTPUT
 
-    - name: Create digest file
-      if: github.event_name != 'pull_request' && steps.docker_build.outputs.digest != ''
-      run: |
-        echo "${REGISTRY_IMAGE}@${{ steps.docker_build.outputs.digest }}" > image-digest.txt
+      - name: Create digest file
+        if: github.event_name != 'pull_request' && steps.docker_build.outputs.digest != ''
+        run: |
+          echo "${REGISTRY_IMAGE}@${{ steps.docker_build.outputs.digest }}" > image-digest.txt
 
-    - name: Upload digest artifact
-      if: github.event_name != 'pull_request' && steps.docker_build.outputs.digest != ''
-      uses: actions/upload-artifact@v4
-      with:
-        name: image-digest
-        path: image-digest.txt
-        retention-days: 7
+      - name: Upload digest artifact
+        if: github.event_name != 'pull_request' && steps.docker_build.outputs.digest != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-digest
+          path: image-digest.txt
+          retention-days: 7
