@@ -30,7 +30,7 @@ fi
 
 # Create VXLAN NIC
 VXLAN_GATEWAY_IP="${VXLAN_IP_NETWORK}.1"
-ip link add vxlan0 type vxlan id $VXLAN_ID group 239.1.1.1 dev eth0 dstport 0 || true
+ip link add vxlan0 type vxlan id $VXLAN_ID group 239.1.1.1 dev eth0 dstport "${VXLAN_PORT:-0}" || true
 ip addr add ${VXLAN_GATEWAY_IP}/24 dev vxlan0 || true
 ip link set up dev vxlan0
 if [[ -n "$VPN_INTERFACE_MTU" ]]; then
@@ -86,6 +86,9 @@ if [[ -n "$VPN_INTERFACE" ]]; then
                 -j ACCEPT
     done
   done </config/nat.conf
+
+  echo "Allow DHCP traffic from vxlan"
+  iptables -A INPUT -i vxlan0 -p udp --sport=68 --dport=67 -j ACCEPT
 
   echo "Setting iptables for VPN with NIC ${VPN_INTERFACE}"
   # Firewall incomming traffic from VPN

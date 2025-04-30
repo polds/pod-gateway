@@ -26,7 +26,7 @@ ip route -6 del default || true
 ip route add "$GATEWAY_IP" via "$K8S_GW_IP" || true
 
 # Create and configure vxlan interface
-ip link add vxlan0 type vxlan id "$VXLAN_ID" group 239.1.1.1 dev eth0 dstport 0 || true
+ip link add vxlan0 type vxlan id "$VXLAN_ID" group 239.1.1.1 dev eth0 dstport "${VXLAN_PORT:-0}" || true
 bridge fdb append to 00:00:00:00:00:00 dst "$GATEWAY_IP" dev vxlan0
 ip link set up dev vxlan0
 
