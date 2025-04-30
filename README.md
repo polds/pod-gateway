@@ -1,7 +1,3 @@
-<center>
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/polds/pod-gateway?utm_source=oss&utm_medium=github&utm_campaign=polds%2Fpod-gateway&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
-</center>
-
 # pod-gateway
 
 This container includes scripts used to route trafic from pods through another gateway pod. Typically
@@ -62,3 +58,6 @@ You need to create the following secrets (not needed within the k8s-at-home org 
 
 Testing requires multiple containers - see the [gateway-admision-controller](../../../gateway-admision-controller)
 and check the [Makefile](Makefile) for other build targets.
+
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/polds/pod-gateway?utm_source=oss&utm_medium=github&utm_campaign=polds%2Fpod-gateway&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
