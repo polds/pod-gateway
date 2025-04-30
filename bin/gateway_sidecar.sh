@@ -76,6 +76,17 @@ dnsmasq=$!
 inotifyd /bin/copy_resolv.sh /etc/resolv.conf:ce &
 inotifyd=$!
 
+# Handles termination signals by stopping dnsmasq and inotifyd processes, waits for their exit, and exits with the combined return code.
+#
+# Globals:
+#   dnsmasq - PID of the dnsmasq process to terminate.
+#   inotifyd - PID of the inotifyd process to terminate.
+#
+# Outputs:
+#   Prints status messages to STDOUT.
+#
+# Returns:
+#   Exits the script with the combined exit code of the terminated processes.
 _kill_procs() {
   echo "Signal received -> killing processes"
 
